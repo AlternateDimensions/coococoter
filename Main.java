@@ -24,7 +24,6 @@ public class Main {
         "NOTE: Factorials OF or Powers OF/TO a decimal are NOT supported!",
         "TIP: To clear output history, enter \"clear\"",
         "NOTE: Unclosed parentheses are NOT supported as of 3/31/2023",
-        "NOTE: Factorials above 10! are not supported due to constraints."
     };
 
     /* main is the one that runs. and it sure does run */

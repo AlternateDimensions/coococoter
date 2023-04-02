@@ -7,5 +7,5 @@ public class Separators {
     public static int CLOSESQUARE = 6;
     public static int CLOSECURLY = 7;
     public static int NONE = 99;
-
+    // I mean I could've put it in Main.java but like, it does not matter too much.
 }

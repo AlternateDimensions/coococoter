@@ -13,4 +13,6 @@ public class Colors {
     public static String ITALIC = "\033[3m";
     public static String UNDERLINE = "\033[4m";
     public static String STRIKE = "\033[9m";
+    // this is a good start, there's more codes you can find by searching "ANSI color codes"
+    // as for the entry sequence, i know \033 works pretty well. no need to deviate from what works.
 }
