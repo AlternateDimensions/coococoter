@@ -23,7 +23,8 @@ public class Main {
         "NOTE: Distributive multiplcation is not supported. Please add a multiplication symbol between parenthetical and non-parenthetical values*",
         "NOTE: Factorials OF or Powers OF/TO a decimal are NOT supported!",
         "TIP: To clear output history, enter \"clear\"",
-        "NOTE: Unclosed parentheses are NOT supported as of 3/31/2023"
+        "NOTE: Unclosed parentheses are NOT supported as of 3/31/2023",
+        "NOTE: Factorials above 10! are not supported due to constraints."
     };
 
     /* main is the one that runs. and it sure does run */
@@ -108,7 +109,6 @@ public class Main {
                 break; //if any separator is detected, immediately move on.
             }
         }
-
         /** Due to the setup, hasSeparators will be false if no separators are found in the check **/
 
         // Evaluation Split
@@ -182,7 +182,6 @@ public class Main {
         }
         // iterate each segment to get answers and simplify
 
-        System.out.println(segments.size());
         for (Segment s : segments){
             // get answer of segment
             answer = calcHandler(s.segment);
@@ -203,10 +202,12 @@ public class Main {
 
         // Calculate answer
         while (equationFragments.size() > 1){
+            System.out.println(equationFragments);
             // F - Factorials
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("!")){
-                    equationFragments.set(i, String.valueOf(factorial(Double.parseDouble(equationFragments.get(i-1)))));
+                    String tempAnswer = String.valueOf(factorial(Double.parseDouble(equationFragments.get(i-1))));
+                    equationFragments.set(i, tempAnswer);
                     equationFragments.remove(i-1);
                 }
             }
@@ -214,7 +215,8 @@ public class Main {
             // E - Exponents
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("^")){
-                    equationFragments.set(i, String.valueOf(toPower(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1)))));
+                    String tempAnswer = String.valueOf(toPower(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
+                    equationFragments.set(i, tempAnswer);
                     equationFragments.remove(i+1);
                     equationFragments.remove(i-1);
                 }
@@ -261,6 +263,13 @@ public class Main {
                         equationFragments.remove(i-1);
                 }
             }
+
+            // CLEANER
+            for (int i = 0; i < equationFragments.size(); i++){
+                if (equationFragments.get(i).equals("")){
+                    equationFragments.remove(i);
+                }
+            }
         }
 
         // Return answer
@@ -291,19 +300,19 @@ public class Main {
 
     /* Operations */
     private static double add(double a, double b){
-        return a + b;
+        return (double) a + b;
     }
     
     private static double subtract(double a, double b){
-        return a - b;
+        return (double) a - b;
     }
     
     private static double multiply(double x, double y){
-        return x*y;
+        return (double) x*y;
     }
     
     private static double divide(double x, double y){
-        return x/y;
+        return (double) x/y;
     }
     
     private static double modulo(double x, double y){
@@ -316,10 +325,11 @@ public class Main {
     }
 
     private static double factorial(double a){
-        String equation = String.valueOf((int)a);
+        String e = String.valueOf(a);
         for (int i = ((int) a)-1; i >= 1; i--){
-            equation += ("*"+String.valueOf(i));
+            e += ("*"+String.valueOf((double) i));
         }
-        return evaluate(equation);
+        System.out.println(e);
+        return calcHandler(e);
     }
 }
