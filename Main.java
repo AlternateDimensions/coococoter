@@ -19,7 +19,6 @@ public class Main {
     private static int lineMax = 2147483646; // this helps me avoid those pesky overflow errors
 
     private static String[] warnings = new String[]{
-        "NOTE: Negative numbers are NOT supported. There is no workaround.",
         "NOTE: Distributive multiplcation is not supported. Please add a multiplication symbol between parenthetical and non-parenthetical values*",
         "NOTE: Factorials OF or Powers OF/TO a decimal are NOT supported!",
         "TIP: To clear output history, enter \"clear\"",
@@ -286,12 +285,16 @@ public class Main {
         String fragment = "";
         for (int i = 0; i < equation.length(); i++){ // I liked writing the fragment loop better since the logic is much easier to execute into code than the segment jungle
             String charString = Character.toString(equationChars[i]);
-            if (operators.contains(charString)){ // if the current character is an operator
+
+            if (charString.equals("-") && fragment.equals("")){
+                // probably a negative sign, evaluate as such
+                fragment += charString;
+            } else if (operators.contains(charString)){ // if the current character is an operator
                 fragments.add(fragment); // this finishes the old fragment, because there's an operator now. THIS IS HOW DECIMAL SUPPORT IS GIVEN!
                 fragments.add(charString); // adds the operator. duh
                 fragment = "";
             } else {
-                fragment += Character.toString(equationChars[i]); // builds next fragment up, character by character
+                fragment += charString; // builds next fragment up, character by character
             }
         }
         fragments.add(fragment); // this basically takes whatever's left as its own fragment. This because no other operators were discovered so we can safely assume this is a good number.
