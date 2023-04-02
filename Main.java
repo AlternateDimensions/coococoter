@@ -16,7 +16,7 @@ public class Main {
     private static String whitelist = operators + separators + ".";
 
     private static int lines = 0;
-    private static int lineMax = 2147483646;
+    private static int lineMax = 2147483646; // this helps me avoid those pesky overflow errors
 
     private static String[] warnings = new String[]{
         "NOTE: Negative numbers are NOT supported. There is no workaround.",
@@ -201,8 +201,9 @@ public class Main {
         double answer = 0;
 
         // Calculate answer
-        while (equationFragments.size() > 1){
-            System.out.println(equationFragments);
+        while (equationFragments.size() > 1){ // this means that there's something to calculate. so do it
+        /* These calculations actually removes the fragments with values and replaces the operator fragment with the answer. thus, we merge 3 (or 2) into 1 */
+    
             // F - Factorials
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("!")){
@@ -226,19 +227,19 @@ public class Main {
             for (int i = 0; i < equationFragments.size(); i++){
                 String tempAnswer = "";
                 switch (equationFragments.get(i)){
-                    case ("*"):
+                    case ("*"): // multiply
                         tempAnswer = String.valueOf(multiply(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
                         break;
-                    case ("%"):
+                    case ("%"): // modulo, or remainder division
                         tempAnswer = String.valueOf(modulo(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
                         break;
-                    case ("/"):
+                    case ("/"): // division, or actual division
                         tempAnswer = String.valueOf(divide(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
@@ -250,13 +251,13 @@ public class Main {
             for (int i = 0; i < equationFragments.size(); i++){
                 String tempAnswer = "";
                 switch (equationFragments.get(i)){
-                    case ("+"):
+                    case ("+"): // addition
                         tempAnswer = String.valueOf(add(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
                         break;
-                    case ("-"):
+                    case ("-"): // subtraction
                         tempAnswer = String.valueOf(subtract(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
@@ -264,7 +265,7 @@ public class Main {
                 }
             }
 
-            // CLEANER
+            // CLEANER, because factorial calculation actually creates an empty string fragment and that breaks the whole thing. too lazy to write better code
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("")){
                     equationFragments.remove(i);
@@ -273,7 +274,7 @@ public class Main {
         }
 
         // Return answer
-        answer = Double.parseDouble(equationFragments.get(0));
+        answer = Double.parseDouble(equationFragments.get(0)); // by this point, all other fragments are gone except 1
         return answer;
     }
 
@@ -284,14 +285,14 @@ public class Main {
 
         // Fragmentation Loop
         String fragment = "";
-        for (int i = 0; i < equation.length(); i++){
+        for (int i = 0; i < equation.length(); i++){ // I liked writing the fragment loop better since the logic is much easier to execute into code than the segment jungle
             String charString = Character.toString(equationChars[i]);
-            if (operators.contains(charString)){
-                fragments.add(fragment);
-                fragments.add(charString);
+            if (operators.contains(charString)){ // if the current character is an operator
+                fragments.add(fragment); // this finishes the old fragment, because there's an operator now. THIS IS HOW DECIMAL SUPPORT IS GIVEN!
+                fragments.add(charString); // adds the operator. duh
                 fragment = "";
             } else {
-                fragment += Character.toString(equationChars[i]);
+                fragment += Character.toString(equationChars[i]); // builds next fragment up, character by character
             }
         }
         fragments.add(fragment); // this basically takes whatever's left as its own fragment. This because no other operators were discovered so we can safely assume this is a good number.
@@ -326,10 +327,12 @@ public class Main {
 
     private static double factorial(double a){
         String e = String.valueOf(a);
-        for (int i = ((int) a)-1; i >= 1; i--){
+        for (int i = ((int) a)-1; i >= 1; i--){ // loops from a-1 to 1
             e += ("*"+String.valueOf((double) i));
         }
-        System.out.println(e);
-        return calcHandler(e);
+        // resulting value should be n*(n-1)*(n-2)*...*1
+        // for example, 5! = 5*4*3*2*1
+
+        return calcHandler(e); // this calls calcHandler with the new equation. I initially wrote this without using recursion and Mr. J made fun of me for it so I did remade it with recursion.
     }
 }
