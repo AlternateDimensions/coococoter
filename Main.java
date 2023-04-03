@@ -19,10 +19,10 @@ public class Main {
     private static int lineMax = 2147483646; // this helps me avoid those pesky overflow errors
 
     private static String[] warnings = new String[]{
+        "TEST CASES: 5+5 = 10 | 4*(3+3) = 24 | 6!+5^4 = 1345 | (5+5*3)/(7^2)+3! ~= 6.41 | (5*[3+4^4]+2)+(3!) = 1303 |",
         "NOTE: Distributive multiplcation is not supported. Please add a multiplication symbol between parenthetical and non-parenthetical values*",
-        "NOTE: Factorials OF or Powers OF/TO a decimal are NOT supported!",
+        "NOTE: Factorials of decimals (gamma function) are not supported!",
         "TIP: To clear output history, enter \"clear\"",
-        "NOTE: Unclosed parentheses are NOT supported as of 3/31/2023",
     };
 
     /* main is the one that runs. and it sure does run */
@@ -52,7 +52,9 @@ public class Main {
                 System.out.println("------------------------------------------------------------------------");
                 System.out.print("\n".repeat(lines));
                 System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + inputString + Colors.DEFAULT + "\" = " + Colors.YELLOW + answer + "\n\n\n" + Colors.CLEAR);
-            }
+                e.printStackTrace();
+                try{Thread.sleep(50000);}catch(Exception aa){}
+            }  
         }
     }
     
@@ -68,7 +70,9 @@ public class Main {
             for (String s : warnings){
                 System.out.println("\033[2K*"+Colors.ITALIC+s+"*");
             }
-            System.out.print("\033[2K"+Colors.CLEAR+Colors.BOLD + "\nInput equation: " + Colors.CYAN + Colors.UNDERLINE);
+            System.out.print("\n");
+            System.out.print("\033[2K");
+            System.out.print(Colors.CLEAR+Colors.BOLD + "Input equation: " + Colors.CYAN + Colors.UNDERLINE);
             input = in.nextLine().replaceAll("\\s", ""); // actually getting the input
             System.out.print(Colors.CLEAR);
             // Check input for non-whitelisted characters
@@ -101,7 +105,7 @@ public class Main {
         boolean hasSeparators = false;
 
         // Separator Check
-        for (Character c : separators.toCharArray()){ // For each character in separators string
+        for (Character c : separatorOpenings.toCharArray()){ // For each character in separators string
             if (equation.contains(c.toString())){ // equation input has separator
                 hasSeparators = true;
                 break; //if any separator is detected, immediately move on.
@@ -124,6 +128,7 @@ public class Main {
         int startIndex = 0, endIndex = 0; // needed to create the segment from scratch
         int sepType = Separators.NONE, sepTypeNeeded = Separators.NONE;  
         int unclosedSegment = 0;
+        int equationOLength = equation.length(), diff = 0;
 
         // Segment Creation
 
@@ -163,42 +168,43 @@ public class Main {
                     unclosedSegment++; // of the bracket type, we have an unclosed segment piece.
                     startIndex = i; // saved the initial index for this segment
                 } else if (sepType == sepTypeNeeded - Separators.THRESHOLD) { // same type of separator as segment starter, needs to be accounted for
-                    unclosedSegment++;
+                    unclosedSegment++; // there is another segment being made. will process later
                 }
-            } else if (sepType < Separators.NONE && sepType == sepTypeNeeded){ // Not none, but since it comes after the opening check, it will all be closings
-                if (unclosedSegment == 1){ // Segment closed
+            } else if (sepType != Separators.NONE && sepType == sepTypeNeeded){ // this is the closing we are looking for
+                if (unclosedSegment == 1){ // Original segment to close
                     endIndex = i;
                     segments.add(new Segment(equation.substring(startIndex+1, endIndex), startIndex, endIndex)); // add new segment
+                    sepTypeNeeded = Separators.NONE;
                     startIndex = 0; endIndex = 0;
                 }
-                unclosedSegment--; // this goes down regardless if it closes a segment. This means it can be negative, but if it does, that just gets removed after all segments are processed.
+                unclosedSegment--; // segment closes, regardless if it's the one we want.
             }
         }
 
         if (segments.size() == 0){ // this is here in case a segment isn't made, typically because there was no closing brackets
-            segments.add(new Segment(equation.substring(startIndex+1, equation.length()).replaceAll("\\)", "").replaceAll("\\]", "").replaceAll("\\}", ""), startIndex, equation.length()));
+            segments.add(new Segment(equation.substring(startIndex+1, equation.length()), startIndex, equation.length()));
         }
-        // iterate each segment to get answers and simplify
 
+        // iterate each segment to get answers and simplify
         for (Segment s : segments){
             // get answer of segment
             answer = calcHandler(s.segment);
+
             // replace entire segment substring with answer
-            boolean startMult = false, endMult = false;
-            startMult = !operators.contains(equation.substring(s.indexStart-1, s.indexStart));
-            endMult = !operators.contains(equation.substring(s.indexEnd+1, s.indexEnd+2));
-
-            if (startMult && endMult){
-                equation = equation.substring(0, s.indexStart)+"*"+answer+"*"+equation.substring(s.indexEnd+1);
-            } else if (startMult){
-                equation = equation.substring(0, s.indexStart)+"*"+answer+equation.substring(s.indexEnd+1);
-            } else if (endMult){
-                equation = equation.substring(0, s.indexStart)+answer+"*"+equation.substring(s.indexEnd+1);
+            if (s.indexStart-diff == 0 && s.indexEnd-diff == equation.length()-1){
+                equation = String.valueOf(answer);
+            } else if (s.indexStart == 0-diff){
+                equation = answer + equation.substring(s.indexEnd+1-diff);
+            } else if (s.indexEnd-diff == equation.length()-1){
+                equation = equation.substring(0, s.indexStart-diff) + answer;
             } else {
-                equation = equation.substring(0, s.indexStart)+answer+equation.substring(s.indexEnd+1);
+                equation = equation.substring(0, s.indexStart-diff) + answer + equation.substring(s.indexEnd+1-diff);
             }
-        }      
 
+            // adjust values since the size of the equation changes with substitution.
+            diff = equationOLength - equation.length();
+            equationOLength = equation.length();
+        }      
         // Supposedly once the segments run out, they should just return the normal answer.
         answer = calcHandler(equation);
         return answer;
@@ -206,14 +212,16 @@ public class Main {
 
     /* evaluation actually evaluates equations, when broken down, and returns the resulting value */
     private static double evaluate(String equation){
+        // Have to do this check here in order to cleanly sub it back.
+        equation = equation.replaceAll("\\)", "").replaceAll("\\]", "").replaceAll("\\}", "");
         // Split into string[]
         ArrayList<String> equationFragments = createFragments(equation);
         double answer = 0;
 
         // Calculate answer
         while (equationFragments.size() > 1){ // this means that there's something to calculate. so do it
-        /* These calculations actually removes the fragments with values and replaces the operator fragment with the answer. thus, we merge 3 (or 2) into 1 */
-    
+            /* These calculations actually removes the fragments with values and replaces the operator fragment with the answer. thus, we merge 3 (or 2) into 1 */
+
             // F - Factorials
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("!")){
@@ -256,7 +264,7 @@ public class Main {
                         equationFragments.remove(i-1);
                 }
             }
-            
+
             // AS - Add, Subtract
             for (int i = 0; i < equationFragments.size(); i++){
                 String tempAnswer = "";
@@ -272,13 +280,6 @@ public class Main {
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
-                }
-            }
-
-            // CLEANER, because factorial calculation actually creates an empty string fragment and that breaks the whole thing. too lazy to write better code
-            for (int i = 0; i < equationFragments.size(); i++){
-                if (equationFragments.get(i).equals("")){
-                    equationFragments.remove(i);
                 }
             }
         }
@@ -298,18 +299,23 @@ public class Main {
         for (int i = 0; i < equation.length(); i++){ // I liked writing the fragment loop better since the logic is much easier to execute into code than the segment jungle
             String charString = Character.toString(equationChars[i]);
 
+            // Operation check
             if (charString.equals("-") && fragment.equals("")){
                 // probably a negative sign, evaluate as such
                 fragment += charString;
             } else if (operators.contains(charString)){ // if the current character is an operator
-                fragments.add(fragment); // this finishes the old fragment, because there's an operator now. THIS IS HOW DECIMAL SUPPORT IS GIVEN!
+                if (!fragment.equals("")){
+                    fragments.add(fragment); // this finishes the old fragment (if any), because there's an operator now. THIS IS HOW DECIMAL SUPPORT IS GIVEN!
+                }
                 fragments.add(charString); // adds the operator. duh
                 fragment = "";
             } else {
                 fragment += charString; // builds next fragment up, character by character
             }
         }
-        fragments.add(fragment); // this basically takes whatever's left as its own fragment. This because no other operators were discovered so we can safely assume this is a good number.
+        if (!fragment.equals("")){
+            fragments.add(fragment); // this basically takes whatever's left as its own fragment. This because no other operators were discovered so we can safely assume this is a good number.
+        }
         return fragments;
     }
 
@@ -335,18 +341,15 @@ public class Main {
     }
     
     private static double toPower(double a, double p){
-        int aInt = (int) a, pInt = (int) p;
-        return (double) (aInt^pInt);
+        return (double) (Math.pow(a, p));
     }
 
     private static double factorial(double a){
-        String e = String.valueOf(a);
-        for (int i = ((int) a)-1; i >= 1; i--){ // loops from a-1 to 1
-            e += ("*"+String.valueOf((double) i));
-        }
-        // resulting value should be n*(n-1)*(n-2)*...*1
-        // for example, 5! = 5*4*3*2*1
-
-        return calcHandler(e); // this calls calcHandler with the new equation. I initially wrote this without using recursion and Mr. J made fun of me for it so I did remade it with recursion.
+       if (a%1 == 0){
+        if (a == 0.0){return 1.0;}
+        return (a*factorial(a-1.0));
+       }
+       return 0;
+       // return Gamma.gamma(a);
     }
 }

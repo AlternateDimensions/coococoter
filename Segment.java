@@ -9,4 +9,4 @@ public class Segment {
     }
 }
 
-// Needed something to store Segment information. and im not writing that janky ahh ArrayList<Object> BS that I could do without having to make a whole new class. Oh well.
+// Needed something to store Segment information. and im not writing that janky ahh ArrayList<Object> crap that I could do without having to make a whole new class. Oh well.
