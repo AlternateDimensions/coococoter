@@ -184,8 +184,20 @@ public class Main {
             // get answer of segment
             answer = calcHandler(s.segment);
             // replace entire segment substring with answer
-            equation = equation.substring(0, s.indexStart)+answer+equation.substring(s.indexEnd+1);
-            }      
+            boolean startMult = false, endMult = false;
+            startMult = !operators.contains(equation.substring(s.indexStart-1, s.indexStart));
+            endMult = !operators.contains(equation.substring(s.indexEnd+1, s.indexEnd+2));
+
+            if (startMult && endMult){
+                equation = equation.substring(0, s.indexStart)+"*"+answer+"*"+equation.substring(s.indexEnd+1);
+            } else if (startMult){
+                equation = equation.substring(0, s.indexStart)+"*"+answer+equation.substring(s.indexEnd+1);
+            } else if (endMult){
+                equation = equation.substring(0, s.indexStart)+answer+"*"+equation.substring(s.indexEnd+1);
+            } else {
+                equation = equation.substring(0, s.indexStart)+answer+equation.substring(s.indexEnd+1);
+            }
+        }      
 
         // Supposedly once the segments run out, they should just return the normal answer.
         answer = calcHandler(equation);
