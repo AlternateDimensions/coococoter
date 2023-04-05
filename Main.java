@@ -21,7 +21,7 @@ public class Main {
     private static String[] warnings = new String[]{
         "TEST CASES: 5+5 = 10 | 4*(3+3) = 24 | 6!+5^4 = 1345 | (5+5*3)/(7^2)+3! ~= 6.41 | (5*[3+4^4]+2)+(3!) = 1303 | -(4*3) = -12 | 4(2+2) = 16 | 2(3+1)3 = 24 |",
         "FUNCTIONS: + | - | * | / | Factorial ! | Power ^ | Modulo % | PFEMMDAS Order (L -> R) | Parenthesis/Bracket () [] {} | Distributive Multiplcation x(y) |",
-        "NOTE: Factorials of decimals (gamma functions) are not supported!",
+        "NOTE: Factorials of decimals (gamma functions) are not supported; such expressions will be evaluated to 1!",
         "TIP: To clear output history, enter \"clear\"",
     };
 
@@ -239,6 +239,7 @@ public class Main {
                     String tempAnswer = String.valueOf(factorial(Double.parseDouble(equationFragments.get(i-1))));
                     equationFragments.set(i, tempAnswer);
                     equationFragments.remove(i-1);
+                    i = 0;
                 }
             }
 
@@ -249,6 +250,7 @@ public class Main {
                     equationFragments.set(i, tempAnswer);
                     equationFragments.remove(i+1);
                     equationFragments.remove(i-1);
+                    i = 0;
                 }
             }
             
@@ -261,18 +263,21 @@ public class Main {
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
+                        i = 0;
                         break;
                     case ("%"): // modulo, or remainder division
                         tempAnswer = String.valueOf(modulo(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
+                        i = 0;
                         break;
                     case ("/"): // division, or actual division
                         tempAnswer = String.valueOf(divide(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
+                        i = 0;
                 }
             }
 
@@ -285,14 +290,18 @@ public class Main {
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
+                        i = 0;
                         break;
                     case ("-"): // subtraction
                         tempAnswer = String.valueOf(subtract(Double.parseDouble(equationFragments.get(i-1)), Double.parseDouble(equationFragments.get(i+1))));
                         equationFragments.set(i, tempAnswer);
                         equationFragments.remove(i+1);
                         equationFragments.remove(i-1);
+                        i = 0;
                 }
             }
+
+            try{Thread.sleep(750);}catch(Exception aaa){};
         }
 
         // Return answer
@@ -327,6 +336,13 @@ public class Main {
         if (!fragment.equals("")){
             fragments.add(fragment); // this basically takes whatever's left as its own fragment. This because no other operators were discovered so we can safely assume this is a good number.
         }
+
+        if (fragments.get(fragments.size()-1).startsWith("-") && operators.contains(fragments.get(fragments.size()-2))){
+            String removedFragment = fragments.remove(fragments.size()-1);
+            fragments.add("-");
+            fragments.add(removedFragment.substring(1));
+        }
+
         return fragments;
     }
 
@@ -360,7 +376,7 @@ public class Main {
         if (a == 0.0){return 1.0;}
         return (a*factorial(a-1.0));
        }
-       return 0;
+       return 1;
        // return Gamma.gamma(a);
     }
 }
