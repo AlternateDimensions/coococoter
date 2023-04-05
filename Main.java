@@ -19,8 +19,7 @@ public class Main {
     private static int lineMax = 2147483646; // this helps me avoid those pesky overflow errors
 
     private static String[] warnings = new String[]{
-        "TEST CASES: 5+5 = 10 | 4*(3+3) = 24 | 6!+5^4 = 1345 | (5+5*3)/(7^2)+3! ~= 6.41 | (5*[3+4^4]+2)+(3!) = 1303 |",
-        "NOTE: Distributive multiplcation is not supported. Please add a multiplication symbol between parenthetical and non-parenthetical values*",
+        "TEST CASES: 5+5 = 10 | 4*(3+3) = 24 | 6!+5^4 = 1345 | (5+5*3)/(7^2)+3! ~= 6.41 | (5*[3+4^4]+2)+(3!) = 1303 | -(4*3) = -12 | 4(2+2) = 16 | 2(3+1)3 = 24",
         "NOTE: Factorials of decimals (gamma function) are not supported!",
         "TIP: To clear output history, enter \"clear\"",
     };
@@ -194,11 +193,25 @@ public class Main {
             if (s.indexStart-diff == 0 && s.indexEnd-diff == equation.length()-1){
                 equation = String.valueOf(answer);
             } else if (s.indexStart == 0-diff){
-                equation = answer + equation.substring(s.indexEnd+1-diff);
+                if (operators.contains(equation.substring(s.indexEnd+1-diff, s.indexEnd+2-diff))){
+                    equation = answer + equation.substring(s.indexEnd+1-diff); // has a connecting operator
+                } else {
+                    equation = answer + "*" + equation.substring(s.indexEnd+1-diff); // does not have a connecting operator
+                }
             } else if (s.indexEnd-diff == equation.length()-1){
-                equation = equation.substring(0, s.indexStart-diff) + answer;
+                if (operators.contains(equation.substring(s.indexStart-diff-1, s.indexStart-diff))){
+                    equation = equation.substring(0, s.indexStart-diff) + answer; // has a connecting operator
+                } else {
+                    equation = equation.substring(0, s.indexStart-diff) + "*" + answer; // does not have a connecting operator
+                }
             } else {
-                equation = equation.substring(0, s.indexStart-diff) + answer + equation.substring(s.indexEnd+1-diff);
+                if (operators.contains(equation.substring(s.indexEnd+1-diff, s.indexEnd+2-diff))){
+                    equation = answer + equation.substring(s.indexEnd+1-diff); // has a connecting operator
+                } else if (operators.contains(equation.substring(s.indexStart-diff-1, s.indexStart-diff))){
+                    equation = equation.substring(0, s.indexStart-diff) + answer; // has a connecting operator
+                } else {
+                    equation = equation.substring(0, s.indexStart-diff) + "*" + answer + "*" + equation.substring(s.indexEnd+1-diff);
+                }
             }
 
             // adjust values since the size of the equation changes with substitution.
@@ -221,7 +234,6 @@ public class Main {
         // Calculate answer
         while (equationFragments.size() > 1){ // this means that there's something to calculate. so do it
             /* These calculations actually removes the fragments with values and replaces the operator fragment with the answer. thus, we merge 3 (or 2) into 1 */
-
             // F - Factorials
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("!")){
