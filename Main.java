@@ -48,12 +48,10 @@ public class Main {
                 System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + inputString + Colors.DEFAULT + "\" = " + Colors.GREEN + answer + "\n\n\n" + Colors.CLEAR);
                 lines = (lines>=lineMax) ? 0 : lines+1;
             } catch (Exception e){
-                answer = "An error occurred.";
+                answer = "An error occurred: \"" + e.getMessage() + "\" @ " + String.valueOf(e.getStackTrace()[e.getStackTrace().length-3]);
                 System.out.println("------------------------------------------------------------------------");
                 System.out.print("\n".repeat(lines));
                 System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + inputString + Colors.DEFAULT + "\" = " + Colors.YELLOW + answer + "\n\n\n" + Colors.CLEAR);
-                e.printStackTrace();
-                try{Thread.sleep(50000);}catch(Exception aa){}
             }  
         }
     }
