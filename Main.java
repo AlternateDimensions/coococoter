@@ -52,9 +52,7 @@ public class Main {
                 System.out.println("------------------------------------------------------------------------");
                 System.out.print("\n".repeat(lines));
                 System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + inputString + Colors.DEFAULT + "\" = " + Colors.YELLOW + answer + "\n\n\n" + Colors.CLEAR);
-                e.printStackTrace();
             }  
-            try{Thread.sleep(10000000);}catch(Exception aaa){}
         }
     }
     
