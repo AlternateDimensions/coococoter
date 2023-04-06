@@ -19,8 +19,8 @@ public class Main {
     private static int lineMax = 2147483646; // this helps me avoid those pesky overflow errors
 
     private static String[] warnings = new String[]{
-        "TEST CASES: 5+5 = 10 | 4*(3+3) = 24 | 6!+5^4 = 1345 | (5+5*3)/(7^2)+3! ~= 6.41 | (5*[3+4^4]+2)+(3!) = 1303 | -(4*3) = -12 | 4(2+2) = 16 | 2(3+1)3 = 24 |",
-        "FUNCTIONS: + | - | * | / | Factorial ! | Power ^ | Modulo % | PFEMMDAS Order (L -> R) | Parenthesis/Bracket () [] {} | Distributive Multiplcation x(y) |",
+        "TEST CASES: 5+5 = 10 | 4*(3+3) = 24 | 6!+5^4 = 1345 | (5+5*3)/(7^2)+3! ~= 6.41 | (5*[3+4^4]+2)+(3!) = 1303 | -(4*3) = -12 | 4(2+2) = 16 | 2(3+1)3 = 24 | (5%)100 = 5 |",
+        "FUNCTIONS: + | - | * | / | Factorial ! | Power ^ | Modulo % | PFEMMDAS Order (L -> R) | Parenthesis/Bracket () [] {} | Distributive Multiplcation x(y) | (x%)y Percentages |",
         "NOTE: Factorials of decimals (gamma functions) are not supported; such expressions will be evaluated to 1!",
         "TIP: To clear output history, enter \"clear\"",
     };
@@ -331,6 +331,9 @@ public class Main {
             if (charString.equals("-") && fragment.equals("")){
                 // probably a negative sign, evaluate as such
                 fragment += charString;
+            } else if (charString.equals("%") && i >= equation.length()-1){ // evaluate % differently if it's at the end of a segment
+                fragments.add(String.valueOf(calcHandler(fragment+"/100")));
+                fragment = "";
             } else if (operators.contains(charString)){ // if the current character is an operator
                 if (!fragment.equals("")){
                     fragments.add(fragment); // this finishes the old fragment (if any), because there's an operator now. THIS IS HOW DECIMAL SUPPORT IS GIVEN!
