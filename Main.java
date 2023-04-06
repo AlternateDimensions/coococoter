@@ -52,7 +52,9 @@ public class Main {
                 System.out.println("------------------------------------------------------------------------");
                 System.out.print("\n".repeat(lines));
                 System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + inputString + Colors.DEFAULT + "\" = " + Colors.YELLOW + answer + "\n\n\n" + Colors.CLEAR);
+                e.printStackTrace();
             }  
+            try{Thread.sleep(10000000);}catch(Exception aaa){}
         }
     }
     
@@ -126,7 +128,7 @@ public class Main {
         int startIndex = 0, endIndex = 0; // needed to create the segment from scratch
         int sepType = Separators.NONE, sepTypeNeeded = Separators.NONE;  
         int unclosedSegment = 0;
-        int equationOLength = equation.length(), diff = 0;
+        int diff = 0;
 
         // Segment Creation
 
@@ -184,39 +186,44 @@ public class Main {
         }
 
         // iterate each segment to get answers and simplify
-        for (Segment s : segments){
+        for (int i = 0; i < segments.size(); i++){
             // get answer of segment
-            answer = calcHandler(s.segment);
+            answer = calcHandler(segments.get(i).segment);
 
-            // replace entire segment substring with answer
-            if (s.indexStart-diff == 0 && s.indexEnd-diff == equation.length()-1){
-                equation = String.valueOf(answer);
-            } else if (s.indexStart == 0-diff){
-                if (operators.contains(equation.substring(s.indexEnd+1-diff, s.indexEnd+2-diff))){
-                    equation = answer + equation.substring(s.indexEnd+1-diff); // has a connecting operator
-                } else {
-                    equation = answer + "*" + equation.substring(s.indexEnd+1-diff); // does not have a connecting operator
-                }
-            } else if (s.indexEnd-diff == equation.length()-1){
-                if (operators.contains(equation.substring(s.indexStart-diff-1, s.indexStart-diff))){
-                    equation = equation.substring(0, s.indexStart-diff) + answer; // has a connecting operator
-                } else {
-                    equation = equation.substring(0, s.indexStart-diff) + "*" + answer; // does not have a connecting operator
-                }
-            } else {
-                if (operators.contains(equation.substring(s.indexEnd+1-diff, s.indexEnd+2-diff))){
-                    equation = answer + equation.substring(s.indexEnd+1-diff); // has a connecting operator
-                } else if (operators.contains(equation.substring(s.indexStart-diff-1, s.indexStart-diff))){
-                    equation = equation.substring(0, s.indexStart-diff) + answer; // has a connecting operator
-                } else {
-                    equation = equation.substring(0, s.indexStart-diff) + "*" + answer + "*" + equation.substring(s.indexEnd+1-diff);
-                }
+            // correct index values properly
+            diff = segments.get(i).segment.length()+2 - String.valueOf(answer).length(); // get the difference between segment and replacement
+            
+            for (int x = i+1; x < segments.size(); x++){ // modify the other future segments' index values to reflect the new length
+                segments.get(x).modifyIS((-1)*diff);
+                segments.get(x).modifyIE((-1)*diff);
             }
 
-            // adjust values since the size of the equation changes with substitution.
-            diff = equationOLength - equation.length();
-            equationOLength = equation.length();
+            // remake equation
+            String beginningDist = "", endingDist = "";
+
+            try {
+                if (!operators.contains(equation.substring(segments.get(i).indexStart-1, segments.get(i).indexStart))){ // Is there an operator before segment?
+                    beginningDist = "*";
+                }
+            } catch (Exception nobegin){}
+
+            try {
+                if (!operators.contains(equation.substring(segments.get(i).indexEnd+1, segments.get(i).indexEnd+2))){ // Is there an operator after segment?
+                    endingDist = "*";
+                }
+            } catch (Exception noend){}
+
+            if (segments.get(i).indexStart == 0 && segments.get(i).indexEnd == equation.length()){ // Segment is the full equation
+                equation = String.valueOf(answer);
+            } else if (segments.get(i).indexStart == 0){ // segment starts at beginning of equation
+                equation = answer + endingDist + equation.substring(segments.get(i).indexEnd+1);
+            } else if (segments.get(i).indexEnd == equation.length()){ // segment ends at end of equation
+                equation = equation.substring(0, segments.get(i).indexStart) + beginningDist + answer;
+            } else { // middle of equation
+                equation = equation.substring(0, segments.get(i).indexStart) + beginningDist + answer + endingDist + equation.substring(segments.get(i).indexEnd+1);
+            }
         }      
+
         // Supposedly once the segments run out, they should just return the normal answer.
         answer = calcHandler(equation);
         return answer;
@@ -233,7 +240,8 @@ public class Main {
         // Calculate answer
         while (equationFragments.size() > 1){ // this means that there's something to calculate. so do it
             /* These calculations actually removes the fragments with values and replaces the operator fragment with the answer. thus, we merge 3 (or 2) into 1 */
-            // F - Factorials
+            
+            // F - Factorials            
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("!")){
                     String tempAnswer = String.valueOf(factorial(Double.parseDouble(equationFragments.get(i-1))));
@@ -337,7 +345,7 @@ public class Main {
             fragments.add(fragment); // this basically takes whatever's left as its own fragment. This because no other operators were discovered so we can safely assume this is a good number.
         }
 
-        if (fragments.get(fragments.size()-1).startsWith("-") && operators.contains(fragments.get(fragments.size()-2))){
+        if (fragments.size() > 1 && fragments.get(fragments.size()-1).startsWith("-") && operators.contains(fragments.get(fragments.size()-2))){
             String removedFragment = fragments.remove(fragments.size()-1);
             fragments.add("-");
             fragments.add(removedFragment.substring(1));

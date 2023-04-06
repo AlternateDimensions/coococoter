@@ -7,6 +7,15 @@ public class Segment {
         indexStart = is;
         indexEnd = ie;
     }
+
+    public void modifyIS(int is){
+        indexStart += is;
+    }
+
+    public void modifyIE(int ie){
+        indexEnd += ie;
+    }
+
 }
 
 // Needed something to store Segment information. and im not writing that janky ahh ArrayList<Object> crap that I could do without having to make a whole new class. Oh well.
