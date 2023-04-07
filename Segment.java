@@ -9,11 +9,11 @@ public class Segment {
     }
 
     public void modifyIS(int is){
-        indexStart += is;
+        indexStart -= is;
     }
 
     public void modifyIE(int ie){
-        indexEnd += ie;
+        indexEnd -= ie;
     }
 
 }

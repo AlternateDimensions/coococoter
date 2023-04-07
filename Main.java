@@ -33,11 +33,15 @@ public class Main {
 
         // Scanner
         Scanner in = new Scanner(System.in);
+        boolean operating = true;
 
         // Calculator loop
-        while (true){
+        while (operating){
             // Get input
             String inputString = inputHandler(in);
+            if (inputString.equals("quit")){
+                operating = false;
+            }
 
             // Solve & Print Equation solution
             Object answer;
@@ -92,6 +96,7 @@ public class Main {
                 System.out.print("\n".repeat(lines));
                 System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + input + Colors.DEFAULT + "\" = " + Colors.RED + e.getMessage() + "\n\n\n" + Colors.CLEAR);
                 if (input.equals("clear")){System.out.print("\033[H\033[2J"); lines = 0;}
+                if (input.equals("quit")){return "quit";}
             }
         }
         return input;
@@ -179,47 +184,49 @@ public class Main {
             }
         }
 
-        if (segments.size() == 0){ // this is here in case a segment isn't made, typically because there was no closing brackets
+        if (unclosedSegment > 0){ // this is here in case a segment isn't made, typically because there was no closing brackets
             segments.add(new Segment(equation.substring(startIndex+1, equation.length()), startIndex, equation.length()));
         }
 
         // iterate each segment to get answers and simplify
         for (int i = 0; i < segments.size(); i++){
+            System.out.println("Segment: "+segments.get(i).segment);
             // get answer of segment
             answer = calcHandler(segments.get(i).segment);
-
-            // correct index values properly
-            diff = segments.get(i).segment.length()+2 - String.valueOf(answer).length(); // get the difference between segment and replacement
-            
-            for (int x = i+1; x < segments.size(); x++){ // modify the other future segments' index values to reflect the new length
-                segments.get(x).modifyIS((-1)*diff);
-                segments.get(x).modifyIE((-1)*diff);
-            }
 
             // remake equation
             String beginningDist = "", endingDist = "";
 
-            try {
-                if (!operators.contains(equation.substring(segments.get(i).indexStart-1, segments.get(i).indexStart))){ // Is there an operator before segment?
-                    beginningDist = "*";
-                }
-            } catch (Exception nobegin){}
+            String starter = "", ending = "";
+            
+            try{
+                starter = equation.substring(0, segments.get(i).indexStart);
+            } catch (Exception a){starter = "";}
 
-            try {
-                if (!operators.contains(equation.substring(segments.get(i).indexEnd+1, segments.get(i).indexEnd+2))){ // Is there an operator after segment?
-                    endingDist = "*";
-                }
-            } catch (Exception noend){}
+            try{
+                beginningDist = operators.contains(starter.substring(starter.length()-1, starter.length())) ? "" : "*";
+            } catch (Exception c){beginningDist = "";}
 
-            if (segments.get(i).indexStart == 0 && segments.get(i).indexEnd == equation.length()){ // Segment is the full equation
-                equation = String.valueOf(answer);
-            } else if (segments.get(i).indexStart == 0){ // segment starts at beginning of equation
-                equation = answer + endingDist + equation.substring(segments.get(i).indexEnd+1);
-            } else if (segments.get(i).indexEnd == equation.length()){ // segment ends at end of equation
-                equation = equation.substring(0, segments.get(i).indexStart) + beginningDist + answer;
-            } else { // middle of equation
-                equation = equation.substring(0, segments.get(i).indexStart) + beginningDist + answer + endingDist + equation.substring(segments.get(i).indexEnd+1);
+            try{
+                ending = equation.substring(segments.get(i).indexEnd+1, equation.length());
+            } catch (Exception b){ending = "";}
+
+            try{
+                endingDist = operators.contains(ending.substring(0, 1)) ? "" : "*";
+            } catch (Exception d){endingDist = "";}
+            
+            equation = starter + beginningDist + answer + endingDist + ending;
+
+            // correct index values properly
+            diff = segments.get(i).segment.length()+2 - String.valueOf(answer).length(); // get the difference between segment and replacement
+            diff -= beginningDist.length();
+            diff -= endingDist.length();
+            
+            for (int x = i+1; x < segments.size(); x++){ // modify the other future segments' index values to reflect the new length
+                segments.get(x).modifyIS(diff);
+                segments.get(x).modifyIE(diff);
             }
+
         }      
 
         // Supposedly once the segments run out, they should just return the normal answer.
@@ -239,6 +246,8 @@ public class Main {
         while (equationFragments.size() > 1){ // this means that there's something to calculate. so do it
             /* These calculations actually removes the fragments with values and replaces the operator fragment with the answer. thus, we merge 3 (or 2) into 1 */
             
+            System.out.println("Fragments: "+equationFragments);
+
             // F - Factorials            
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("!")){
@@ -306,8 +315,6 @@ public class Main {
                         i = 0;
                 }
             }
-
-            try{Thread.sleep(750);}catch(Exception aaa){};
         }
 
         // Return answer
@@ -324,6 +331,8 @@ public class Main {
         String fragment = "";
         for (int i = 0; i < equation.length(); i++){ // I liked writing the fragment loop better since the logic is much easier to execute into code than the segment jungle
             String charString = Character.toString(equationChars[i]);
+            System.out.println("Fragment piece: "+fragment);
+            System.out.println("Current char: "+ charString);
 
             // Operation check
             if (charString.equals("-") && fragment.equals("")){
@@ -342,11 +351,13 @@ public class Main {
                 fragment += charString; // builds next fragment up, character by character
             }
         }
+
         if (!fragment.equals("")){
             fragments.add(fragment); // this basically takes whatever's left as its own fragment. This because no other operators were discovered so we can safely assume this is a good number.
         }
+        System.out.println("Fragments: "+fragments);
 
-        if (fragments.size() > 1 && fragments.get(fragments.size()-1).startsWith("-") && operators.contains(fragments.get(fragments.size()-2))){
+        if (fragments.size() > 1 && fragments.get(fragments.size()-1).startsWith("-") && !operators.contains(fragments.get(fragments.size()-2))){
             String removedFragment = fragments.remove(fragments.size()-1);
             fragments.add("-");
             fragments.add(removedFragment.substring(1));
