@@ -13,6 +13,16 @@ public class Colors {
     public static String ITALIC = "\033[3m";
     public static String UNDERLINE = "\033[4m";
     public static String STRIKE = "\033[9m";
+
+    public static String RANDOM(){
+        String[] colors = new String[]{RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN};
+        int a = (1 + (int) (Math.random()*6))-1;
+        try{
+            return colors[a];
+        } catch (Exception x){
+            return BLUE;
+        }
+    }
     // this is a good start, there's more codes you can find by searching "ANSI color codes"
     // as for the entry sequence, i know \033 works pretty well. no need to deviate from what works.
 }

@@ -16,12 +16,14 @@ public class Main {
     private static String whitelist = operators + separators + ".";
 
     private static int lines = 0;
-    private static int lineMax = 2147483646; // this helps me avoid those pesky overflow errors
+    private static int lineMax = 9; 
+    private static int iteration = 1;
 
     private static String[] warnings = new String[]{
         "TEST CASES: 5+5 = 10 | 4*(3+3) = 24 | 6!+5^4 = 1345 | (5+5*3)/(7^2)+3! ~= 6.41 | (5*[3+4^4]+2)+(3!) = 1303 | -(4*3) = -12 | 4(2+2) = 16 | 2(3+1)3 = 24 | (5%)100 = 5 |",
         "FUNCTIONS: + | - | * | / | Factorial ! | Power ^ | Modulo % | PFEMMDAS Order (L -> R) | Parenthesis/Bracket () [] {} | Distributive Multiplcation x(y) | (x%)y Percentages |",
         "NOTE: Factorials of decimals (gamma functions) are not supported; such expressions will be evaluated to 1!",
+        "NOTE: Only up to 10 previous equations are saved!",
         "TIP: To clear output history, enter \"clear\"",
     };
 
@@ -47,16 +49,19 @@ public class Main {
             Object answer;
             try {
                 answer = calcHandler(inputString);
-                System.out.println("------------------------------------------------------------------------");
                 System.out.print("\n".repeat(lines));
-                System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + inputString + Colors.DEFAULT + "\" = " + Colors.GREEN + answer + "\n\n\n" + Colors.CLEAR);
+                System.out.println("\033[2K["+Colors.BOLD+Colors.RANDOM()+iteration+Colors.CLEAR+"] \"" + Colors.CYAN + inputString + Colors.DEFAULT + "\" = " + Colors.GREEN + answer + "\n\n\n" + Colors.CLEAR);
                 lines = (lines>=lineMax) ? 0 : lines+1;
             } catch (Exception e){
                 answer = "An error occurred: \"" + e.getMessage() + "\" @ " + String.valueOf(e.getStackTrace()[e.getStackTrace().length-3]);
-                System.out.println("------------------------------------------------------------------------");
                 System.out.print("\n".repeat(lines));
-                System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + inputString + Colors.DEFAULT + "\" = " + Colors.YELLOW + answer + "\n\n\n" + Colors.CLEAR);
-            }  
+                System.out.println("\033[2K["+Colors.BOLD+Colors.RANDOM()+iteration+Colors.CLEAR+"] \"" + Colors.CYAN + inputString + Colors.DEFAULT + "\" = " + Colors.YELLOW + answer + "\n\n\n" + Colors.CLEAR);
+            }
+            try{
+                iteration++;
+            } catch (Exception x){
+                iteration = 1;
+            }
         }
     }
     
@@ -72,11 +77,10 @@ public class Main {
             for (String s : warnings){
                 System.out.println("\033[2K*"+Colors.ITALIC+s+"*");
             }
-            System.out.print("\n");
-            System.out.print("\033[2K");
+            System.out.print("\n\033[2K\n\033[2K------------------------------------------------------------------------\033[F");
             System.out.print(Colors.CLEAR+Colors.BOLD + "Input equation: " + Colors.CYAN + Colors.UNDERLINE);
             input = in.nextLine().replaceAll("\\s", ""); // actually getting the input
-            System.out.print(Colors.CLEAR);
+            System.out.print(Colors.CLEAR+"\n");
             // Check input for non-whitelisted characters
             try{
                 // Check if input is empty
@@ -92,7 +96,6 @@ public class Main {
                 valid = true;
             } catch (Exception e){
                 // Input was invalid
-                System.out.println("------------------------------------------------------------------------");
                 System.out.print("\n".repeat(lines));
                 System.out.println("\033[2K\"" + Colors.CYAN + Colors.BOLD + input + Colors.DEFAULT + "\" = " + Colors.RED + e.getMessage() + "\n\n\n" + Colors.CLEAR);
                 if (input.equals("clear")){System.out.print("\033[H\033[2J"); lines = 0;}
@@ -190,7 +193,6 @@ public class Main {
 
         // iterate each segment to get answers and simplify
         for (int i = 0; i < segments.size(); i++){
-            System.out.println("Segment: "+segments.get(i).segment);
             // get answer of segment
             answer = calcHandler(segments.get(i).segment);
 
@@ -246,8 +248,6 @@ public class Main {
         while (equationFragments.size() > 1){ // this means that there's something to calculate. so do it
             /* These calculations actually removes the fragments with values and replaces the operator fragment with the answer. thus, we merge 3 (or 2) into 1 */
             
-            System.out.println("Fragments: "+equationFragments);
-
             // F - Factorials            
             for (int i = 0; i < equationFragments.size(); i++){
                 if (equationFragments.get(i).equals("!")){
@@ -331,8 +331,6 @@ public class Main {
         String fragment = "";
         for (int i = 0; i < equation.length(); i++){ // I liked writing the fragment loop better since the logic is much easier to execute into code than the segment jungle
             String charString = Character.toString(equationChars[i]);
-            System.out.println("Fragment piece: "+fragment);
-            System.out.println("Current char: "+ charString);
 
             // Operation check
             if (charString.equals("-") && fragment.equals("")){
@@ -355,7 +353,6 @@ public class Main {
         if (!fragment.equals("")){
             fragments.add(fragment); // this basically takes whatever's left as its own fragment. This because no other operators were discovered so we can safely assume this is a good number.
         }
-        System.out.println("Fragments: "+fragments);
 
         if (fragments.size() > 1 && fragments.get(fragments.size()-1).startsWith("-") && !operators.contains(fragments.get(fragments.size()-2))){
             String removedFragment = fragments.remove(fragments.size()-1);
